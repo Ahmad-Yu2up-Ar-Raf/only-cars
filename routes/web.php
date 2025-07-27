@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdmindController;
 use App\Http\Controllers\PaketController;
+use App\Http\Controllers\TeamController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\WorkOS\Http\Middleware\ValidateSessionWithWorkOS;
@@ -19,8 +20,8 @@ Route::middleware([
 
     Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::resource('/', AdmindController::class);
-        
-        // Elections routes
+          Route::resource('teams', TeamController::class);
+        Route::post('/teams/{team}/switch', [TeamController::class, 'switch'])->name('teams.switch');
         Route::resource('paket', PaketController::class);
        
     });

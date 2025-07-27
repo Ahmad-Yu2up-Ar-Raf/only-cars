@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ChevronsUpDown, LucideIcon, Plus } from "lucide-react"
+import { ChevronsUpDown, Command, Loader, LucideIcon, Plus } from "lucide-react"
 
 import {
   DropdownMenu,
@@ -18,20 +18,47 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/fragments/sidebar"
+import { Auth, Teams } from "@/types"
+import { router } from "@inertiajs/react"
+import { toast } from "sonner"
 
 export function TeamSwitcher({
   teams,
+  currentTeams
 }: {
-  teams: {
-    name: string
-    logo: LucideIcon
-    plan: string
-  }[]
+  teams: Auth["teams"],
+  currentTeams: Auth["currentTeam"]
 }) {
   const { isMobile } = useSidebar()
-  const [activeTeam, setActiveTeam] = React.useState(teams[0])
 
-  if (!activeTeam) {
+
+ const [isLoading, setIsLoading] = React.useState(false)
+  const handleTeamSwitch = (teamId: number) => {
+    if (isLoading || teamId === currentTeams?.id) return
+    setIsLoading(true)
+    toast.loading("Switch team...", {
+      id: "switch-loading"
+    });
+    
+    router.post(`dashboard/teams/${teamId}/switch`, {}, {
+      onSuccess: () => {
+        setIsLoading(false)
+      toast.success("Switch team succed", {
+      id: "switch-loading"
+    });
+      },
+      onError: (errors) => {
+        setIsLoading(false)
+             toast.success("Switch team error", {
+      id: "switch-loading"
+    });
+        console.error('Failed to switch team:', errors)
+      }
+    })
+  }
+
+
+  if (!currentTeams) {
     return null
   }
 
@@ -45,11 +72,16 @@ export function TeamSwitcher({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <div className="bg-sidebar-primary text-accent flex aspect-square size-8 items-center justify-center rounded-lg">
-                <activeTeam.logo className="size-4" />
+              {currentTeams.logo ? 
+              <currentTeams.logo className="size-4" />
+                
+            : 
+            <Command  className="size-4"/>
+            }  
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{activeTeam.name}</span>
-                <span className="truncate text-xs">{activeTeam.plan}</span>
+                <span className="truncate font-medium">{currentTeams.name}</span>
+                <span className="truncate text-xs">{currentTeams.plan }</span>
               </div>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
@@ -65,15 +97,23 @@ export function TeamSwitcher({
             </DropdownMenuLabel>
             {teams.map((team, index) => (
               <DropdownMenuItem
+              disabled={isLoading}
                 key={team.name}
-                onClick={() => setActiveTeam(team)}
+                 onClick={() => handleTeamSwitch(team.id)}
                 className="gap-2 p-2"
               >
                 <div className="flex size-6 items-center justify-center rounded-md border">
-                  <team.logo className="size-3.5 shrink-0" />
+                     {currentTeams.logo ? 
+              <currentTeams.logo className="size-3.5 shrink-0" />
+                
+            : 
+            <Command className="size-3.5 shrink-0"/>
+            }  
                 </div>
                 {team.name}
-                <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
+                <DropdownMenuShortcut>{isLoading ? <Loader className=" animate-spin" /> : (
+`⌘${index + 1}`
+                )}</DropdownMenuShortcut>
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />

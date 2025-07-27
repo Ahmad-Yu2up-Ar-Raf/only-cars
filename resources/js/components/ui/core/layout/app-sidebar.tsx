@@ -95,12 +95,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const isMob = useIsMobile()
 
 
-
+console.log(auth.currentTeam)
 
   return (
 <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={auth.teams} currentTeams={auth.currentTeam} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />

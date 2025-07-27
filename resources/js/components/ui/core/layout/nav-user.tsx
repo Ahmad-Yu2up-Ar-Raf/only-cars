@@ -36,6 +36,7 @@ export function NavUser({
         const cleanup = useMobileNavigation();
 
     const handleLogout = () => {
+      
         cleanup();
         router.flushAll();
     };
@@ -86,7 +87,7 @@ export function NavUser({
             <Link  className=" w-full" href={'/settings'} as="button" >
             <DropdownMenuItem>
               <Settings/>
-              Settings
+             Settings
             </DropdownMenuItem>
               </Link>
            

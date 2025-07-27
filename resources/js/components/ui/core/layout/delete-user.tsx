@@ -6,17 +6,32 @@ import { Button } from '@/components/ui/fragments/button';
 import HeadingSmall from '@/components/ui/core/layout/heading-small';
 
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogTitle, DialogTrigger } from '@/components/ui/fragments/dialog';
+import { toast } from 'sonner';
 
 export default function DeleteUser() {
     const { delete: destroy, processing, reset, clearErrors } = useForm();
 
     const deleteUser: FormEventHandler = (e) => {
         e.preventDefault();
-
+   toast.loading("Delete team...", {
+      id: "Delete-loading"
+    });
         destroy(route('profile.destroy'), {
             preserveScroll: true,
-            onSuccess: () => closeModal(),
-            onFinish: () => reset(),
+            onSuccess: () => 
+                {
+                closeModal()
+    //               toast.success("Delete team...", {
+    //   id: "Delete-loading"
+    // });
+            },
+            onFinish: () =>
+                {
+                 reset()
+                   toast.success("Delete accont succed", {
+      id: "Delete-loading"
+    });
+                },
         });
     };
 

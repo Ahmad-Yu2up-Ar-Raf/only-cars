@@ -3,6 +3,8 @@ import type { Config } from 'ziggy-js';
 
 export interface Auth {
     user: User;
+    teams: Teams[];
+    currentTeam: Teams | null
 }
 
 export interface BreadcrumbItem {
@@ -36,11 +38,31 @@ export interface User {
     name: string;
     email: string;
     avatar?: string;
+    current_team_id?: number | null;
     email_verified_at: string | null;
     created_at: string;
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+
+
+export interface Teams {
+    id: number;
+    name: string;
+    plan? : string;
+    logo?: LucideIcon
+    owner_id: number
+    created_at: string;
+    updated_at: string;
+    [key: string]: unknown; // This allows for additional properties...
+}
+
+
+
+
+
+
 
 export interface sidebarType {  items: {
     title: string
