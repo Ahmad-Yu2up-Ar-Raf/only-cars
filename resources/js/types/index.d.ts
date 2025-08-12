@@ -61,7 +61,12 @@ export interface Teams {
 
 
 
-
+export interface Filters {
+    search?: string;
+ 
+    status?: string[] | string;
+    [key: string]: unknown;
+}
 
 
 export interface sidebarType {  items: {

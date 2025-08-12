@@ -5,6 +5,8 @@ import {
   AudioWaveform,
   BookOpen,
   Bot,
+  Calendar,
+  Camera,
   Command,
   Frame,
   GalleryVerticalEnd,
@@ -62,9 +64,22 @@ import { usePage } from "@inertiajs/react";
         isActive: false,
       },
       {
-        title: "Mess",
-        url: "/dashboard/paket",
+        title: "Events",
+        url: "/dashboard/events",
+        icon: Calendar,
+        isActive: false,
+      },
+   
+      {
+        title: "Merchandise",
+        url: "/dashboard/merchandise",
         icon: Store,
+        isActive: false,
+      },
+      {
+        title: "Gallery",
+        url: "/dashboard/gallery",
+        icon: Camera,
         isActive: false,
       },
    
