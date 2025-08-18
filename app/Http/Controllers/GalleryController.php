@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class GalleryController extends Controller
@@ -29,7 +30,7 @@ class GalleryController extends Controller
             $query->where(function($q) use ($search) {
                 $searchLower = strtolower($search);
                 $q->whereRaw('LOWER(title) LIKE ?', ["%{$searchLower}%"])
-                  ->orWhereRaw('LOWER(plat_nomor) LIKE ?', ["%{$searchLower}%"]);
+                  ->orWhereRaw('LOWER(visibility) LIKE ?', ["%{$searchLower}%"]);
             });
         }
 
@@ -44,11 +45,16 @@ class GalleryController extends Controller
         }
 
 
-       $gallery = $query->paginate($perPage, ['*'], 'page', $page);
-
+       $gallery = $query->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'page', $page);
+  $gallery->through(function($item) {
+            return [
+                ...$item->toArray(),
+                'cover_image' => $item->cover_image ? url($item->cover_image) : null
+            ];
+        });
 
         return Inertia::render('dashboard/gallery', [
-            'gallery' => $gallery->items() ?? [],
+            'Gallery' => $gallery->items() ?? [],
          'filters' => [
                 'search' => $search ?? '',
            
@@ -85,12 +91,22 @@ class GalleryController extends Controller
     public function store(StoreGallery $request)
     {
         try {
+
+             $cover_imagePath = null;
             // Observer akan handle file upload segallerya otomatis
-            $gallery = Gallery::create([
+            
+  if (request()->hasFile('cover_image')) {
+            $file = request()->file('cover_image');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('uploads', $filename, 'public');
+            $cover_imagePath = 'storage/' . $path;
+        }
+
+        $gallery = Gallery::create([
                 ...$request->validated(),
+                       'cover_image' => $cover_imagePath,
                 'user_id' => Auth::id()
             ]);
-
             $fileCount = count($gallery->files ?? []);
             $message = $fileCount > 0 
                 ? "Gallery berhasil ditambahkan dengan {$fileCount} file."
@@ -131,8 +147,44 @@ class GalleryController extends Controller
     {
         try {
             
-            $gallery->update($request->validated());
 
+
+         $updateData = [
+             'title' => $request['title'],
+  
+           
+       
+            'visibility' => $request['visibility'],
+          
+             // Validasi untuk struktur files yang kompleks dengan base64
+            'files' =>  $request['files'],
+           
+        ];
+            
+
+ if (request()->hasFile('cover_image')) {
+            Log::info('New cover_image file detected');
+            
+            // Hapus gambar lama jika ada
+            if ( $gallery->cover_image && Storage::disk('public')->exists(str_replace('storage/', '',  $gallery->cover_image))) {
+                Storage::disk('public')->delete(str_replace('storage/', '',  $gallery->cover_image));
+                Log::info('Old cover_image deleted: ' .  $gallery->cover_image);
+            }
+            
+            // Upload gambar baru
+            $file = request()->file('cover_image');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('uploads', $filename, 'public');
+            $updateData['cover_image'] = 'storage/' . $path;
+            
+            Log::info('New cover_image uploaded: ' . $updateData['cover_image']);
+        } else {
+            Log::info('No new cover_image file, keeping existing cover_image');
+            // Jika tidak ada file baru, pertahankan gambar yang sudah ada
+            // Tidak perlu menambahkan 'cover_image' ke updateData agar tidak mengganti dengan null
+        }
+
+            $gallery->update($updateData);
             $fileCount = count($gallery->files ?? []);
             $message = request()->hasFile('files') || request()->has('files')
                 ? "Gallery berhasil diupdate dengan {$fileCount} file."
@@ -189,4 +241,51 @@ class GalleryController extends Controller
         }
     }
 
+
+
+    
+    public function statusUpdate(Request $request)
+    {
+        
+        $ids = $request->input('ids');
+        $value = $request->input('value');
+        $colum = $request->input('colum');
+
+        if (empty($ids)) {
+            return redirect()->route('dashboard.gallery.index')
+                ->with('error', 'Tidak ada event yang dipilih untuk dihapus.');
+        }
+
+        // Validasi apakah semua ID milik user yang sedang login
+        $gallery = Gallery::whereIn('id', $ids)->where('user_id', Auth::id())->get();
+        if ($gallery->count() !== count($ids)) {
+            return redirect()->route('dashboard.gallery.index')
+                ->with('error', 'Unauthorized access atau event tidak ditemukan.');
+        }
+
+        try {
+            DB::beginTransaction();
+              
+             foreach ($gallery as $event) {
+                $event->update([$colum => $value]);
+            }
+
+   
+
+            
+            
+            DB::commit();
+            
+
+            $deletedCount = $gallery->count();
+            return redirect()->route('dashboard.gallery.index')
+                ->with('success', "{$deletedCount} Gallery berhasil dihapus beserta semua file terkait.");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Gallery deletion error: ' . $e->getMessage());
+            return redirect()->route('dashboard.gallery.index')
+                ->with('error', 'Terjadi kesalahan saat menghapus data: ' . $e->getMessage());
+        }
+    }
 }

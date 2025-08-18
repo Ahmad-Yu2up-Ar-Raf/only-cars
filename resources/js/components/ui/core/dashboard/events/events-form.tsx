@@ -24,17 +24,7 @@ import FormFileUpload, { FileUploadRef } from "@/components/ui/fragments/file-up
 import { Textarea } from "@/components/ui/fragments/textarea";
 
 
-import {
-  format
-} from "date-fns"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from "@/components/ui/fragments/popover"
-import { Button } from "@/components/ui/fragments/button";
-import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
-import { Calendar } from "@/components/ui/fragments/calendar";
+
 import {
   Select,
   SelectContent,
@@ -42,10 +32,10 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/fragments/select"
-import { FileWithPreview } from "@/hooks/use-file-upload";
+import { FileWithPreview } from "@/hooks/use-multiple-file-upload";
 import PictureImageInput from "@/components/ui/fragments/picture-input";
 import { EventsSchema } from "@/lib/validations/validations";
-import { StatusEvents } from "@/config/enum-type";
+import { StatusEvents, visibility } from "@/config/enum-type";
 import { SmartDatetimeInput } from "@/components/ui/fragments/smart-date-time";
 
 
@@ -334,6 +324,32 @@ export function TaskForm<T extends FieldValues, >({
                 </FormControl>
                 <SelectContent>
                   {StatusEvents.map((item,i ) => (
+
+                  <SelectItem key={i} value={item.value}>{item.label}</SelectItem>
+                  ))}
+                  
+                </SelectContent>
+              </Select>
+                <FormDescription className=" sr-only">You can manage email addresses in your email settings.</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+<FormField
+          control={form.control}
+          name={"visibility" as FieldPath<T>}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Visibility</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {visibility.map((item,i ) => (
 
                   <SelectItem key={i} value={item.value}>{item.label}</SelectItem>
                   ))}

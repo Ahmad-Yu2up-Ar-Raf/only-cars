@@ -22,8 +22,9 @@ class Gallery extends Model
     protected $fillable = [   
         'title',
         'files',
+        'visibility',
         'user_id',
-        'visibility' ,
+            'cover_image'
      ];
  
  
@@ -32,7 +33,7 @@ class Gallery extends Model
      [  
          'title' => 'string',
          'files' => 'array',
-
+    'cover_image' => 'string',
          'visibility' => VisibilityEnums::class,
   
      ]; 

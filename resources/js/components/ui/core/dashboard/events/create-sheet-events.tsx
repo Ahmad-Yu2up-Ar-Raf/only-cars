@@ -57,8 +57,7 @@ export function CreateEventsSheet({ ...props}: type) {
     defaultValues: {
        title: "", 
    location: "",
-   start_date: "",
-   end_date: "",
+
      visibility: "public",
       },
     resolver: zodResolver(eventsSchema),
@@ -68,7 +67,7 @@ function onSubmit(input: EventsSchema) {
    
     
     
-
+console.log(input)
     toast.loading("Events creating....", {
       id: "create-events"
     });
@@ -112,7 +111,7 @@ if (!isDesktop) {
     <Sheet open={isOpen} onOpenChange={setIsOpen} modal={true} >
  
       <SheetTrigger asChild  className={cn(props.trigger == false && "sr-only" )} >
-        <Button variant="outline" className=" text-sm  bg-background" size="sm">
+        <Button variant="outline" className=" text-sm  w-fit bg-background" size="sm">
           <Plus  className=" mr-3 "/>
           Add New 
         </Button>
@@ -146,7 +145,7 @@ if (!isDesktop) {
 return(
      <Drawer open={isOpen} onOpenChange={setIsOpen}  modal={true}  >
    <DrawerTrigger asChild className={cn(props.trigger == false && "sr-only" )} >
-       <Button variant="outline" className=" text-sm  bg-background" size="sm">
+       <Button variant="outline" className=" w-fit text-sm  bg-background" size="sm">
           <Plus  className=" mr-3 "/>
           Add New 
         </Button>

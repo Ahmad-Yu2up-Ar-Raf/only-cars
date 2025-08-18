@@ -16,6 +16,31 @@ export interface NavGroup {
     title: string;
     items: NavItem[];
 }
+  
+export interface ReportDataByDate { 
+    date: string;
+    events: number;
+    merchandise: number;
+    gallery: number;
+}
+
+export interface Reports {
+    totalEvents: number
+    totalMerchandise: number
+    totalMerchandiseTerjual: number
+   totalGallery: number
+   
+    EventsstatusCount: Record<string, number>
+    StatusMerchandiseCount: Record<string, number>
+    countsByDate: ReportDataByDate[]
+    [key: string]: unknown; 
+}
+
+
+export type PageProps = {
+    reports : Reports
+ }
+
 
 export interface NavItem {
     title: string;
@@ -33,6 +58,16 @@ export interface SharedData {
     [key: string]: unknown;
 }
 
+
+  export interface DataCard { 
+    title: string;
+    description: string;
+    value: number;
+    icon: LucideIcon;
+   label?: string;
+  }
+  
+
 export interface User {
     id: number;
     name: string;
@@ -45,6 +80,10 @@ export interface User {
     [key: string]: unknown; // This allows for additional properties...
 }
 
+  export interface tabsLinktype{
+    link: string
+    name: string
+  }
 
 
 export interface Teams {
@@ -60,10 +99,16 @@ export interface Teams {
 
 
 
-
+ export interface ChartDataType {
+    date: string;
+    motor?: number;
+    mess?: number;
+    rooms?: number;
+  }
+  
 export interface Filters {
     search?: string;
- 
+    
     status?: string[] | string;
     [key: string]: unknown;
 }
@@ -79,4 +124,18 @@ export interface sidebarType {  items: {
       url: string
     }[]
   }[]
+}
+
+
+export interface PaginatedData {
+    data:  EventsSchema[];
+    currentPage: number;
+    lastPage: number;
+    perPage: number;
+    total: number;
+    links: {
+        url: string | null;
+        label: string;
+        active: boolean;
+    }[];
 }

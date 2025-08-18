@@ -26,8 +26,11 @@ Route::middleware([
           Route::resource('teams', TeamController::class);
           Route::resource('events',  EventsController::class);
           Route::resource('gallery',  GalleryController::class);
-
+          Route::post('/events/{events}/status', [EventsController::class, 'statusUpdate'])->name('events.status');
+          
           Route::resource('merchandise',  MerchandiseController::class);
+          Route::post('/merchandise/{merchandise}/status', [MerchandiseController::class, 'statusUpdate'])->name('merchandise.status');
+          Route::post('/gallery/{gallery}/status', [GalleryController::class, 'statusUpdate'])->name('gallery.status');
         Route::post('/teams/{team}/switch', [TeamController::class, 'switch'])->name('teams.switch');
         Route::resource('paket', PaketController::class);
          

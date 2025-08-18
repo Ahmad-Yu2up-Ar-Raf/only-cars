@@ -3,6 +3,26 @@ import { StatusEventsValue ,  StatusMerchandiseValue, visibilityValue} from "@/c
 import * as z from "zod";
 
 
+const imageSchema = z.union([
+  // File object untuk upload baru
+  z.instanceof(File)
+    .refine((file) => file.size <= 2 * 1024 * 1024, {
+      message: "File size must be less than 2MB",
+    })
+    .refine(
+      (file) =>
+        ["image/jpeg", "image/jpg", "image/png", "image/svg+xml", "image/gif"].includes(
+          file.type
+        ),
+      {
+        message: "Only JPEG, PNG, SVG, and GIF files are allowed",
+      }
+    ),
+  // String untuk existing image path
+  z.string().min(1, "Picture is required"),
+])
+
+
 export const FileMetadata = z.object({
   name:  z.coerce.string().min(1, "File name is required"),
   size: z.coerce.number().min(1, "File size is required"),
@@ -19,7 +39,7 @@ export const FileWithPreview = z.object({
 export const eventsSchema = z.object({
     id: z.number().optional(),
   title: z.string().min(4, "Name is required"),
-  cover_image: z.string().min(4, "Name is required"),
+  cover_image: imageSchema,
   deskripsi: z.string().optional(),
   location: z.string().min(4, "Plat nomor is required"),
   capacity: z.coerce.number().min(2, "Harga is required").optional(),
@@ -42,7 +62,7 @@ export const eventsSchema = z.object({
 export const merchSchema = z.object({
     id: z.number().optional(),
   name: z.string().min(4, "Name is required"),
-  image: z.string().min(4, "Name is required").optional(),
+  image: imageSchema,
   deskripsi: z.string().optional(),
   price: z.coerce.number().min(0.001, "Harga is required"),
   quantity: z.coerce.number().min(2, "Harga is required"),
@@ -65,7 +85,7 @@ export const gallerySchema = z.object({
     id: z.number().optional(),
     title: z.string().min(4, "Name is required"),
 
-
+  cover_image: imageSchema,
   visibility: z.enum(visibilityValue).optional(),
 
   created_at: z.date().optional(),

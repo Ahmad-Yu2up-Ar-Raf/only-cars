@@ -21,7 +21,7 @@ import {
   formatBytes,
   useFileUpload,
   type FileWithPreview,
-} from "@/hooks/use-file-upload"
+} from "@/hooks/use-multiple-file-upload"
 import { Button } from "@/components/ui/fragments/button"
 import { cn } from "@/lib/utils"
 

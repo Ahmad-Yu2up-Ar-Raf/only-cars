@@ -1,15 +1,16 @@
 <?php
 
 namespace App\Services;
-
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-
 class FileUploadService
 {
-    private const ALLOWED_IMAGE_TYPES = [
+    /**
+     * Create a new class instance.
+     */
+  private const ALLOWED_IMAGE_TYPES = [
         'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'
     ];
 

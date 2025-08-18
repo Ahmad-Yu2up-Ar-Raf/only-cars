@@ -16,14 +16,13 @@ class Merchandise extends Model
 {
     use HasFactory;
 
-    protected $table = 'events';
+    protected $table = 'merchandises';
 
 
     protected $fillable = [   
         'name',
         'image',
         'user_id',
-
  'deskripsi' ,
  'status',
  'files' ,

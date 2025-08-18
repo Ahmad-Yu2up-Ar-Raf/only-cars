@@ -14,15 +14,14 @@ export type FileMetadata = {
   name: string
   size: number
   type: string
-  url?: string
-  id?: string
+  url: string
+  id: string
 }
 
 export type FileWithPreview = {
   file: File | FileMetadata
   id: string
   preview?: string
-  base64Data?: string // Tambahkan untuk menyimpan base64 data
 }
 
 export type FileUploadOptions = {
@@ -30,7 +29,7 @@ export type FileUploadOptions = {
   maxSize?: number // in bytes
   accept?: string
   multiple?: boolean // Defaults to false
-  initialFiles?: FileWithPreview[]
+  initialFiles?: FileMetadata[]
   onFilesChange?: (files: FileWithPreview[]) => void // Callback when files change
   onFilesAdded?: (addedFiles: FileWithPreview[]) => void // Callback when new files are added
 }
@@ -42,7 +41,7 @@ export type FileUploadState = {
 }
 
 export type FileUploadActions = {
-  addFiles: (files: FileList | File[]) => Promise<void>
+  addFiles: (files: FileList | File[]) => void
   removeFile: (id: string) => void
   clearFiles: () => void
   clearErrors: () => void
@@ -59,21 +58,6 @@ export type FileUploadActions = {
   }
 }
 
-// Helper function untuk convert file ke base64
-const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => {
-      const result = reader.result as string
-      // Remove data URL prefix (data:image/jpeg;base64,) untuk mendapatkan base64 murni
-      const base64 = result.split(',')[1]
-      resolve(base64)
-    }
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
-}
-
 export const useFileUpload = (
   options: FileUploadOptions = {}
 ): [FileUploadState, FileUploadActions] => {
@@ -88,7 +72,11 @@ export const useFileUpload = (
   } = options
 
   const [state, setState] = useState<FileUploadState>({
-    files: initialFiles,
+    files: initialFiles.map((file) => ({
+      file,
+      id: file.id,
+      preview: file.url,
+    })),
     isDragging: false,
     errors: [],
   })
@@ -147,7 +135,7 @@ export const useFileUpload = (
     if (file instanceof File) {
       return `${file.name}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
     }
-    return file?.id!
+    return file.id
   }, [])
 
   const clearFiles = useCallback(() => {
@@ -179,7 +167,7 @@ export const useFileUpload = (
   }, [onFilesChange])
 
   const addFiles = useCallback(
-    async (newFiles: FileList | File[]) => {
+    (newFiles: FileList | File[]) => {
       if (!newFiles || newFiles.length === 0) return
 
       const newFilesArray = Array.from(newFiles)
@@ -206,18 +194,19 @@ export const useFileUpload = (
 
       const validFiles: FileWithPreview[] = []
 
-      // Process files dengan async untuk convert ke base64
-      for (const file of newFilesArray) {
-        // Check for duplicates
-        const isDuplicate = state.files.some(
-          (existingFile) =>
-            existingFile.file.name === file.name &&
-            existingFile.file.size === file.size
-        )
+      newFilesArray.forEach((file) => {
+        // Only check for duplicates if multiple files are allowed
+        if (multiple) {
+          const isDuplicate = state.files.some(
+            (existingFile) =>
+              existingFile.file.name === file.name &&
+              existingFile.file.size === file.size
+          )
 
-        // Skip duplicate files silently
-        if (isDuplicate) {
-          continue
+          // Skip duplicate files silently
+          if (isDuplicate) {
+            return
+          }
         }
 
         // Check file size
@@ -227,32 +216,20 @@ export const useFileUpload = (
               ? `Some files exceed the maximum size of ${formatBytes(maxSize)}.`
               : `File exceeds the maximum size of ${formatBytes(maxSize)}.`
           )
-          continue
+          return
         }
 
         const error = validateFile(file)
         if (error) {
           errors.push(error)
         } else {
-          try {
-            // Convert file ke base64
-            const base64Data = await fileToBase64(file)
-            
-            validFiles.push({
-              file: {
-                name: file.name,
-                size: file.size,
-                type: file.type,
-              },
-              id: generateUniqueId(file),
-              preview: createPreview(file),
-              base64Data, // Tambahkan base64 data
-            })
-          } catch (base64Error) {
-            errors.push(`Failed to process file: ${file.name}`)
-          }
+          validFiles.push({
+            file,
+            id: generateUniqueId(file),
+            preview: createPreview(file),
+          })
         }
-      }
+      })
 
       // Only update state if we have valid files to add
       if (validFiles.length > 0) {
@@ -352,7 +329,7 @@ export const useFileUpload = (
   }, [])
 
   const handleDrop = useCallback(
-    async (e: DragEvent<HTMLElement>) => {
+    (e: DragEvent<HTMLElement>) => {
       e.preventDefault()
       e.stopPropagation()
       setState((prev) => ({ ...prev, isDragging: false }))
@@ -366,9 +343,9 @@ export const useFileUpload = (
         // In single file mode, only use the first file
         if (!multiple) {
           const file = e.dataTransfer.files[0]
-          await addFiles([file])
+          addFiles([file])
         } else {
-          await addFiles(e.dataTransfer.files)
+          addFiles(e.dataTransfer.files)
         }
       }
     },
@@ -376,9 +353,9 @@ export const useFileUpload = (
   )
 
   const handleFileChange = useCallback(
-    async (e: ChangeEvent<HTMLInputElement>) => {
+    (e: ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files.length > 0) {
-        await addFiles(e.target.files)
+        addFiles(e.target.files)
       }
     },
     [addFiles]

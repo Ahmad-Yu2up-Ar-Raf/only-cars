@@ -6,6 +6,7 @@ use App\Models\Merchandise;
 use App\Services\FileUploadService;
 use App\Services\JsonFileUploadService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class MerchandiseObserver
 {
@@ -74,7 +75,7 @@ class MerchandiseObserver
         if (!request()->has('files')) {
             return; // Tidak ada files dalam request, skip
         }
-
+ 
         self::$isProcessingFiles = true;
         
         try {
@@ -176,7 +177,9 @@ class MerchandiseObserver
         if (self::$isProcessingFiles) {
             return;
         }
-
+            if ($merchandise->image && Storage::disk('public')->exists(str_replace('storage/', '', $merchandise->image))) {
+            Storage::disk('public')->delete(str_replace('storage/', '', $merchandise->image));
+        }
         if (!empty($merchandise->files)) {
             self::$isProcessingFiles = true;
             

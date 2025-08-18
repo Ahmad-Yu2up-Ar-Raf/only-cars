@@ -23,32 +23,32 @@ class UpdateEvents extends FormRequest
     public function rules(): array
     {
 
-        $eventId = $this->route('events')->id;
+        $eventId = $this->route('event')->id;
 
         return [
-            'title' => 'required|unique:events,name,' . $eventId . '|max:255|string',
+            'title' => 'required|unique:events,title,' . $eventId . '|max:255|string',
            'cover_image' => 'required|image|mimes:jpg,png,jpeg|max:2048|dimensions:min_width=100,min_height=100',
            
-            'deskripsi' => 'nullable|string|max:1000',
+            'deskripsi' => 'nullable|string',
             'location' => 'nullable|string',
             'status' => 'nullable|string',
             'visibility' => 'nullable|string',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
 
-            'capacity' => 'nullable|integer|min:1900',
+            'capacity' => 'nullable|integer|min:2',
             
-            // Validasi untuk struktur files yang kompleks dengan base64
-            'files' => 'required|array|min:1|max:10',
-            'files.*.file' => 'required|array',
-            'files.*.file.name' => 'required|string|max:255',
+             // Validasi untuk struktur files yang kompleks dengan base64
+            'files' => 'nullable|array|min:1|max:10',
+            'files.*.file' => 'nullable|array',
+            'files.*.file.name' => 'nullable|string|max:255',
             'files.*.file.size' => [
-                'required',
+                'nullable',
                 'numeric',
                 'max:10485760', // 10MB dalam bytes
             ],
             'files.*.file.type' => [
-                'required',
+                'nullable',
                 'string',
                 function ($attribute, $value, $fail) {
                     $allowedTypes = [
@@ -61,11 +61,11 @@ class UpdateEvents extends FormRequest
                     }
                 },
             ],
-            'files.*.id' => 'required|string',
+            'files.*.id' => 'nullable|string',
             'files.*.preview' => 'nullable|string',
             // Tambahkan validasi untuk base64 data
             'files.*.base64Data' => [
-                'required',
+                'nullable',
                 'string',
                 function ($attribute, $value, $fail) {
                     // Validasi format base64

@@ -6,6 +6,7 @@ use App\Models\Gallery;
 use App\Services\FileUploadService;
 use App\Services\JsonFileUploadService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class GalleryObserver
 {
@@ -172,10 +173,16 @@ class GalleryObserver
      */
     public function deleting(Gallery $gallery)
     {
+        if ($gallery->cover_image && Storage::disk('public')->exists(str_replace('storage/', '', $gallery->cover_image))) {
+            Storage::disk('public')->delete(str_replace('storage/', '', $gallery->cover_image));
+        }
+
         // Prevent double execution
         if (self::$isProcessingFiles) {
             return;
         }
+
+
 
         if (!empty($gallery->files)) {
             self::$isProcessingFiles = true;

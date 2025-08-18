@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth as FacadesAuth;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class EventsController extends Controller
@@ -31,7 +32,7 @@ class EventsController extends Controller
             $query->where(function($q) use ($search) {
                 $searchLower = strtolower($search);
                 $q->whereRaw('LOWER(title) LIKE ?', ["%{$searchLower}%"])
-                  ->orWhereRaw('LOWER(plat_nomor) LIKE ?', ["%{$searchLower}%"]);
+                  ->orWhereRaw('LOWER(location) LIKE ?', ["%{$searchLower}%"]);
             });
         }
 
@@ -46,15 +47,21 @@ class EventsController extends Controller
         }
 
 
-       $events = $query->paginate($perPage, ['*'], 'page', $page);
+       $events = $query->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'page', $page);
 
-
+       $events->through(function($item) {
+            return [
+                ...$item->toArray(),
+                'cover_image' => $item->cover_image ? url($item->cover_image) : null
+            ];
+        });
         return Inertia::render('dashboard/events', [
             'events' => $events->items() ?? [],
          'filters' => [
                 'search' => $search ?? '',
-             
+              
                 'status' => $status ?? [],
+                
             ],
             'pagination' => [
                 'data' => $events->toArray(),
@@ -62,6 +69,8 @@ class EventsController extends Controller
                 'currentPage' => $events->currentPage(),
                 'perPage' => $events->perPage(),
                 'lastPage' => $events->lastPage(),
+         
+     
             ],
             'flash' => [
                 'success' => session('success'),
@@ -84,9 +93,16 @@ class EventsController extends Controller
     public function store(StoreEvents $request)
     {
         try {
-            // Observer akan handle file upload seeventsa otomatis
+                    $cover_imagePath = null;
+    if (request()->hasFile('cover_image')) {
+            $file = request()->file('cover_image');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('uploads', $filename, 'public');
+            $cover_imagePath = 'storage/' . $path;
+        }
             $events = Events::create([
                 ...$request->validated(),
+                   'cover_image' => $cover_imagePath,
                 'user_id' => Auth::id()
             ]);
 
@@ -126,13 +142,56 @@ class EventsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateEvents $request, Events $events)
+    public function update(UpdateEvents $request, Events $event)
     {
         try {
-            
-            $events->update($request->validated());
+          
 
-            $fileCount = count($events->files ?? []);
+
+    $updateData = [
+             'title' => $request['title'],
+  
+           
+            'deskripsi' => $request['deskripsi'],
+            'location' => $request['location'],
+            'status' => $request['status'],
+            'visibility' => $request['visibility'],
+            'start_date' => $request['start_date'],
+            'end_date' => $request['end_date'],
+
+            'capacity' => $request['capacity'],
+            
+             // Validasi untuk struktur files yang kompleks dengan base64
+            'files' =>  $request['files'],
+           
+        ];
+            
+
+ if (request()->hasFile('cover_image')) {
+            Log::info('New cover_image file detected');
+            
+            // Hapus gambar lama jika ada
+            if ( $event->cover_image && Storage::disk('public')->exists(str_replace('storage/', '',  $event->cover_image))) {
+                Storage::disk('public')->delete(str_replace('storage/', '',  $event->cover_image));
+                Log::info('Old cover_image deleted: ' .  $event->cover_image);
+            }
+            
+            // Upload gambar baru
+            $file = request()->file('cover_image');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('uploads', $filename, 'public');
+            $updateData['cover_image'] = 'storage/' . $path;
+            
+            Log::info('New cover_image uploaded: ' . $updateData['cover_image']);
+        } else {
+            Log::info('No new cover_image file, keeping existing cover_image');
+            // Jika tidak ada file baru, pertahankan gambar yang sudah ada
+            // Tidak perlu menambahkan 'cover_image' ke updateData agar tidak mengganti dengan null
+        }
+
+            $event->update($updateData);
+
+            $fileCount = count($event->files ?? []);
             $message = request()->hasFile('files') || request()->has('files')
                 ? "Events berhasil diupdate dengan {$fileCount} file."
                 : "Events berhasil diupdate.";
@@ -153,30 +212,76 @@ class EventsController extends Controller
      */
     public function destroy(Request $request)
     {
+        
         $ids = $request->input('ids');
         if (empty($ids)) {
             return redirect()->route('dashboard.events.index')
-                ->with('error', 'Tidak ada mobil yang dipilih untuk dihapus.');
+                ->with('error', 'Tidak ada event yang dipilih untuk dihapus.');
         }
 
         // Validasi apakah semua ID milik user yang sedang login
-        $mobils = Events::whereIn('id', $ids)->where('user_id', Auth::id())->get();
-        if ($mobils->count() !== count($ids)) {
+        $events = Events::whereIn('id', $ids)->where('user_id', Auth::id())->get();
+        if ($events->count() !== count($ids)) {
             return redirect()->route('dashboard.events.index')
-                ->with('error', 'Unauthorized access atau mobil tidak ditemukan.');
+                ->with('error', 'Unauthorized access atau event tidak ditemukan.');
         }
 
         try {
             DB::beginTransaction();
-            
+              
             // SOLUSI: Delete satu per satu agar Observer terpicu
-            foreach ($mobils as $mobil) {
-                $mobil->delete(); // Ini akan trigger observer events
+            foreach ($events as $event) {
+                $event->delete(); // Ini akan trigger observer events
             }
             
             DB::commit();
 
-            $deletedCount = $mobils->count();
+            $deletedCount = $events->count();
+            return redirect()->route('dashboard.events.index')
+                ->with('success', "{$deletedCount} Events berhasil dihapus beserta semua file terkait.");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Events deletion error: ' . $e->getMessage());
+            return redirect()->route('dashboard.events.index')
+                ->with('error', 'Terjadi kesalahan saat menghapus data: ' . $e->getMessage());
+        }
+    }
+
+    public function statusUpdate(Request $request)
+    {
+        
+        $ids = $request->input('ids');
+        $value = $request->input('value');
+        $colum = $request->input('colum');
+
+        if (empty($ids)) {
+            return redirect()->route('dashboard.events.index')
+                ->with('error', 'Tidak ada event yang dipilih untuk dihapus.');
+        }
+
+        // Validasi apakah semua ID milik user yang sedang login
+        $events = Events::whereIn('id', $ids)->where('user_id', Auth::id())->get();
+        if ($events->count() !== count($ids)) {
+            return redirect()->route('dashboard.events.index')
+                ->with('error', 'Unauthorized access atau event tidak ditemukan.');
+        }
+
+        try {
+            DB::beginTransaction();
+              
+             foreach ($events as $event) {
+                $event->update([$colum => $value]);
+            }
+
+   
+
+            
+            
+            DB::commit();
+            
+
+            $deletedCount = $events->count();
             return redirect()->route('dashboard.events.index')
                 ->with('success', "{$deletedCount} Events berhasil dihapus beserta semua file terkait.");
 

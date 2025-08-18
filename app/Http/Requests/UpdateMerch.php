@@ -26,10 +26,10 @@ class UpdateMerch extends FormRequest
         $merchandiseId = $this->route('merchandise')->id;
 
         return [
-            'name' => 'required|unique:merchandise,name' . $merchandiseId .'|max:255|string',
+            'name' => 'required|unique:merchandises,name,' . $merchandiseId .'|max:255|string',
            'image' => 'required|image|mimes:jpg,png,jpeg|max:2048|dimensions:min_width=100,min_height=100',
            'price' => 'required|numeric|min:0|max:9999999999999.99',
-            'deskripsi' => 'nullable|string|max:1000',
+            'deskripsi' => 'nullable|string',
      
             'status' => 'nullable|string',
             'visibility' => 'nullable|string',
@@ -38,16 +38,17 @@ class UpdateMerch extends FormRequest
             'quantity' => 'nullable|integer|min:1900',
             
             // Validasi untuk struktur files yang kompleks dengan base64
-            'files' => 'required|array|min:1|max:10',
-            'files.*.file' => 'required|array',
-            'files.*.file.name' => 'required|string|max:255',
+            // Validasi untuk struktur files yang kompleks dengan base64
+            'files' => 'nullable|array|min:1|max:10',
+            'files.*.file' => 'nullable|array',
+            'files.*.file.name' => 'nullable|string|max:255',
             'files.*.file.size' => [
-                'required',
+                'nullable',
                 'numeric',
                 'max:10485760', // 10MB dalam bytes
             ],
             'files.*.file.type' => [
-                'required',
+                'nullable',
                 'string',
                 function ($attribute, $value, $fail) {
                     $allowedTypes = [
@@ -60,11 +61,11 @@ class UpdateMerch extends FormRequest
                     }
                 },
             ],
-            'files.*.id' => 'required|string',
+            'files.*.id' => 'nullable|string',
             'files.*.preview' => 'nullable|string',
             // Tambahkan validasi untuk base64 data
             'files.*.base64Data' => [
-                'required',
+                'nullable',
                 'string',
                 function ($attribute, $value, $fail) {
                     // Validasi format base64

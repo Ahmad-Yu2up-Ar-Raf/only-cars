@@ -6,6 +6,7 @@ use App\Models\Events;
 use App\Services\FileUploadService;
 use App\Services\JsonFileUploadService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class EventObserver
 {
@@ -32,6 +33,9 @@ class EventObserver
         if (self::$isProcessingFiles) {
             return;
         }
+
+    
+
 
         if (request()->hasFile('files') || (request()->has('files') && is_array(request('files')))) {
             self::$isProcessingFiles = true;
@@ -63,8 +67,10 @@ class EventObserver
     /**
      * Handle file updates with proper logic to avoid duplicate uploads
      */
-    public function updating(Events $events)
+    public function updating(Events $event)
     {
+
+
         // Prevent double execution
         if (self::$isProcessingFiles) {
             return;
@@ -74,15 +80,15 @@ class EventObserver
         if (!request()->has('files')) {
             return; // Tidak ada files dalam request, skip
         }
-
+      
         self::$isProcessingFiles = true;
         
         try {
             $requestFiles = request('files', []);
-            $oldFiles = $events->getOriginal('files') ?? [];
+            $oldFiles = $event->getOriginal('files') ?? [];
 
             Log::info("Processing file update", [
-                'events_id' => $events->id,
+                'events_id' => $event->id,
                 'old_files_count' => count($oldFiles),
                 'request_files_count' => count($requestFiles)
             ]);
@@ -92,7 +98,7 @@ class EventObserver
                 if (!empty($oldFiles)) {
                     $this->jsonFileUploadService->deleteMultipleFiles($oldFiles);
                 }
-                $events->files = [];
+                $event->files = [];
                 return;
             }
 
@@ -138,16 +144,16 @@ class EventObserver
             if (!empty($filesToDelete)) {
                 $this->jsonFileUploadService->deleteMultipleFiles($filesToDelete);
                 Log::info('Deleted unused files', [
-                    'events_id' => $events->id,
+                    'events_id' => $event->id,
                     'deleted_count' => count($filesToDelete)
                 ]);
             }
 
             // Update files
-            $events->files = $finalFiles;
+            $event->files = $finalFiles;
             
             Log::info("File update completed", [
-                'events_id' => $events->id,
+                'events_id' => $event->id,
                 'final_files_count' => count($finalFiles)
             ]);
 
@@ -177,13 +183,18 @@ class EventObserver
             return;
         }
 
+
+          if ($events->cover_image && Storage::disk('public')->exists(str_replace('storage/', '', $events->cover_image))) {
+            Storage::disk('public')->delete(str_replace('storage/', '', $events->cover_image));
+        }
+
         if (!empty($events->files)) {
             self::$isProcessingFiles = true;
             
             try {
                 // Refresh model to get latest data
                 $events->refresh();
-                
+         
                 Log::info("Attempting to delete files for events deletion", [
                     'events_id' => $events->id,
                     'files_count' => count($events->files)

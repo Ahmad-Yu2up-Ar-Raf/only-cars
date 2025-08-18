@@ -22,12 +22,12 @@ export interface OptionItem {
   export const StatusMerchandise: OptionItem[] = [
     { value: 'available', label: 'Available' },
     { value: 'sold', label: 'Sold ' },
-    { value: 'not available', label: 'NotAvailable' },
+    { value: 'notavailable', label: 'Not Available' },
     
   ];
 
   export const visibility: OptionItem[] = [
-    { value: 'public', label: 'public' },
+    { value: 'public', label: 'Public' },
     { value: 'private', label: 'Private ' },
 
     
@@ -48,6 +48,8 @@ export const StatusMerchandiseValue: string[] = StatusMerchandise.map(function(i
 export const StatusEventsValue : string[] = StatusEvents.map(function(item) {
     return item['value'];
   });
+
+  
 export const visibilityValue : string[] = visibility.map(function(item) {
     return item['value'];
   });

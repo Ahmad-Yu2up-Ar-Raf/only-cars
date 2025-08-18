@@ -1,25 +1,14 @@
+import { GalleryDataTable } from "@/components/ui/core/dashboard/gallery/table/GalleryDataTable";
 import { GallerySchema } from "@/lib/validations/validations";
-import { Filters } from "@/types";
+import { Filters, PaginatedData } from "@/types";
 
 
-interface PaginatedData {
-    data:  GallerySchema[];
-    currentPage: number;
-    lastPage: number;
-    perPage: number;
-    total: number;
-    links: {
-        url: string | null;
-        label: string;
-        active: boolean;
-    }[];
-}
 
 
 type PageProps = {
     pagination: PaginatedData;
  
-    gallery: GallerySchema[]
+    Gallery: GallerySchema[]
     filters: Filters,
       flash?: {
         success?: string;
@@ -27,9 +16,15 @@ type PageProps = {
       };
 }
 
-export default function Dashboard({ }: PageProps) {
+export default function Dashboard({  Gallery , pagination, filters}: PageProps) {
     return (
   <>
+      <header className="flex flex-col gap-0.5">
+    <h2 className="text-3xl font-bold tracking-tight font-sans">Gallery Management</h2>
+    <p className="text-muted-foreground">Here is your gallery list. Manage your gallery here.</p>
+  </header>
+
+  <GalleryDataTable Gallery={Gallery} PaginatedData={pagination} filters={filters}/>
   </>
     );
 }

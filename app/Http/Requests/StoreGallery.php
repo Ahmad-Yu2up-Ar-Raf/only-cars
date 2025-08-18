@@ -23,23 +23,23 @@ class StoreGallery extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required|unique:galleries,name|max:255|string',
+            'title' => 'required|unique:galleries,title|max:255|string',
          
             'visibility' => 'nullable|string',
 
-            
+                'cover_image' => 'required|image|mimes:jpg,png,jpeg|max:2048|dimensions:min_width=100,min_height=100',
          
             // Validasi untuk struktur files yang kompleks dengan base64
-            'files' => 'required|array|min:1|max:10',
-            'files.*.file' => 'required|array',
-            'files.*.file.name' => 'required|string|max:255',
+            'files' => 'nullable|array|min:1|max:10',
+            'files.*.file' => 'nullable|array',
+            'files.*.file.name' => 'nullable|string|max:255',
             'files.*.file.size' => [
-                'required',
+                'nullable',
                 'numeric',
                 'max:10485760', // 10MB dalam bytes
             ],
             'files.*.file.type' => [
-                'required',
+                'nullable',
                 'string',
                 function ($attribute, $value, $fail) {
                     $allowedTypes = [
@@ -52,11 +52,11 @@ class StoreGallery extends FormRequest
                     }
                 },
             ],
-            'files.*.id' => 'required|string',
+            'files.*.id' => 'nullable|string',
             'files.*.preview' => 'nullable|string',
             // Tambahkan validasi untuk base64 data
             'files.*.base64Data' => [
-                'required',
+                'nullable',
                 'string',
                 function ($attribute, $value, $fail) {
                     // Validasi format base64

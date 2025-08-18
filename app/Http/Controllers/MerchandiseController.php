@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class MerchandiseController extends Controller
@@ -28,8 +29,8 @@ class MerchandiseController extends Controller
      if ($search) {
             $query->where(function($q) use ($search) {
                 $searchLower = strtolower($search);
-                $q->whereRaw('LOWER(title) LIKE ?', ["%{$searchLower}%"])
-                  ->orWhereRaw('LOWER(plat_nomor) LIKE ?', ["%{$searchLower}%"]);
+                $q->whereRaw('LOWER(name) LIKE ?', ["%{$searchLower}%"])
+                  ->orWhereRaw('LOWER(deskripsi) LIKE ?', ["%{$searchLower}%"]);
             });
         }
 
@@ -44,11 +45,16 @@ class MerchandiseController extends Controller
         }
 
 
-       $merchandise = $query->paginate($perPage, ['*'], 'page', $page);
-
+       $merchandise = $query->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'page', $page);
+    $merchandise->through(function($item) {
+            return [
+                ...$item->toArray(),
+                'image' => $item->image ? url($item->image) : null
+            ];
+        });
 
         return Inertia::render('dashboard/merchandise', [
-            'merchandise' => $merchandise->items() ?? [],
+            'Merchandise' => $merchandise->items() ?? [],
          'filters' => [
                 'search' => $search ?? '',
            
@@ -82,10 +88,20 @@ class MerchandiseController extends Controller
     public function store(StoreMerch $request)
     {
         try {
+
+            
+                    $imagePath = null;
+    if (request()->hasFile('image')) {
+            $file = request()->file('image');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('uploads/', $filename, 'public');
+            $imagePath = 'storage/' . $path;
+        }
             // Observer akan handle file upload semerchandisea otomatis
             $merchandise = Merchandise::create([
                 ...$request->validated(),
-                'user_id' => Auth::id()
+                'user_id' => Auth::id(),
+                    'image' => $imagePath,
             ]);
 
             $fileCount = count($merchandise->files ?? []);
@@ -127,8 +143,50 @@ class MerchandiseController extends Controller
     public function update(UpdateMerch $request, Merchandise $merchandise)
     {
         try {
+           
+                $updateData = [
+             'name' => $request['name'],
+  
+           
+            'deskripsi' => $request['deskripsi'],
+            'price' => $request['price'],
+            'status' => $request['status'],
+            'visibility' => $request['visibility'],
+            'quantity' => $request['quantity'],
+        
+             // Validasi untuk struktur files yang kompleks dengan base64
+            'files' =>  $request['files'],
+           
+        ];
+
+ if (request()->hasFile('image')) {
+            Log::info('New image file detected');
             
-            $merchandise->update($request->validated());
+            // Hapus gambar lama jika ada
+            if ( $merchandise->image && Storage::disk('public')->exists(str_replace('storage/', '',  $merchandise->image))) {
+                Storage::disk('public')->delete(str_replace('storage/', '',  $merchandise->image));
+                Log::info('Old image deleted: ' .  $merchandise->image);
+            }
+            
+            // Upload gambar baru
+            $file = request()->file('image');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('uploads', $filename, 'public');
+            $updateData['image'] = 'storage/' . $path;
+            
+            Log::info('New image uploaded: ' . $updateData['image']);
+        } else {
+            Log::info('No new image file, keeping existing image');
+            // Jika tidak ada file baru, pertahankan gambar yang sudah ada
+            // Tidak perlu menambahkan 'image' ke updateData agar tidak mengganti dengan null
+        }
+
+
+
+
+
+
+            $merchandise->update($updateData);
 
             $fileCount = count($merchandise->files ?? []);
             $message = request()->hasFile('files') || request()->has('files')
@@ -158,8 +216,8 @@ class MerchandiseController extends Controller
         }
 
         // Validasi apakah semua ID milik user yang sedang login
-        $mobils = Merchandise::whereIn('id', $ids)->where('user_id', Auth::id())->get();
-        if ($mobils->count() !== count($ids)) {
+        $merchandise = Merchandise::whereIn('id', $ids)->where('user_id', Auth::id())->get();
+        if ($merchandise->count() !== count($ids)) {
             return redirect()->route('dashboard.merchandise.index')
                 ->with('error', 'Unauthorized access atau mobil tidak ditemukan.');
         }
@@ -168,13 +226,13 @@ class MerchandiseController extends Controller
             DB::beginTransaction();
             
             // SOLUSI: Delete satu per satu agar Observer terpicu
-            foreach ($mobils as $mobil) {
-                $mobil->delete(); // Ini akan trigger observer merchandise
+            foreach ($merchandise as $merch) {
+                $merch->delete(); // Ini akan trigger observer merchandise
             }
             
             DB::commit();
 
-            $deletedCount = $mobils->count();
+            $deletedCount = $merchandise->count();
             return redirect()->route('dashboard.merchandise.index')
                 ->with('success', "{$deletedCount} Merchandise berhasil dihapus beserta semua file terkait.");
 
@@ -185,4 +243,50 @@ class MerchandiseController extends Controller
                 ->with('error', 'Terjadi kesalahan saat menghapus data: ' . $e->getMessage());
         }
     }
+
+    public function statusUpdate(Request $request)
+    {
+        
+        $ids = $request->input('ids');
+        $value = $request->input('value');
+        $colum = $request->input('colum');
+
+        if (empty($ids)) {
+            return redirect()->route('dashboard.merchandise.index')
+                ->with('error', 'Tidak ada event yang dipilih untuk dihapus.');
+        }
+
+        // Validasi apakah semua ID milik user yang sedang login
+        $merchandise = Merchandise::whereIn('id', $ids)->where('user_id', Auth::id())->get();
+        if ($merchandise->count() !== count($ids)) {
+            return redirect()->route('dashboard.merchandise.index')
+                ->with('error', 'Unauthorized access atau event tidak ditemukan.');
+        }
+
+        try {
+            DB::beginTransaction();
+              
+             foreach ($merchandise as $merch) {
+                $merch->update([$colum => $value]);
+            }
+
+   
+
+            
+            
+            DB::commit();
+            
+
+            $deletedCount = $merchandise->count();
+            return redirect()->route('dashboard.merchandise.index')
+                ->with('success', "{$deletedCount} Merchandise berhasil dihapus beserta semua file terkait.");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Merchandise deletion error: ' . $e->getMessage());
+            return redirect()->route('dashboard.merchandise.index')
+                ->with('error', 'Terjadi kesalahan saat menghapus data: ' . $e->getMessage());
+        }
+    }
+    
 }
