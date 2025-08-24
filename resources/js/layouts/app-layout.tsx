@@ -1,5 +1,6 @@
 import DashboardSkeleton from '@/components/ui/fragments/DashboardSkeleton';
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
+import { cn } from '@/lib/utils';
 
 import { Head, usePage } from '@inertiajs/react';
 import { type ReactNode } from 'react';
@@ -22,9 +23,13 @@ export default ({ children, ...props }: AppLayoutProps) =>
     return(
     <AppLayoutTemplate  {...props}>
         <Head title={pathNames[currentPath]}/>
-           <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
+           <div className={cn("flex h-full flex-1 flex-col rounded-xl  overflow-x-auto" ,
 
-        {children != null ? children: (
+   pathNames[0] === 'dashboard' && 'p-5'
+                 
+           )}>
+
+        {children ? children: (
             <DashboardSkeleton/>
         )}
            </div>

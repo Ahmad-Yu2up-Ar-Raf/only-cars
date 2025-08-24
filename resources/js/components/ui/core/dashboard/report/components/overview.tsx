@@ -7,7 +7,7 @@ import { Bike,  Calendar,  Camera,  CarIcon,  CircleFadingArrowUp,  DoorOpen, Sh
 import { DataCard, PageProps } from '@/types';
 import { ChartPie } from './charts/chat-pie-donut-text';
 import { ChartAreaInteractive } from './charts/chart-area-interactive';
-import { ChartBarActive } from './charts/chart-bar-active';
+
 
 
 

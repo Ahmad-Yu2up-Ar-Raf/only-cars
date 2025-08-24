@@ -20,9 +20,7 @@ createInertiaApp({
     title: (title) => title ? `${title} - ${appName}` : appName,
     resolve: (name) => {
         const page = resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx'));
-        
-        // Auto-apply dashboard layout untuk semua pages di dashboard
-        if (name.startsWith('dashboard/') || name.startsWith('settings/') ) {
+  
            page.then((module: any) => {
     if (!module.default.layout) {
         module.default.layout = (page: React.ReactNode) => {
@@ -37,7 +35,7 @@ createInertiaApp({
         };
     }
 });
-        }
+        
         
         return page;
     },

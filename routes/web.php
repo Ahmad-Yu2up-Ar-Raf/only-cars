@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdmindController;
 use App\Http\Controllers\EventsController;
 use App\Http\Controllers\GalleryController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MerchandiseController;
 use App\Http\Controllers\PaketController;
 use App\Http\Controllers\TeamController;
@@ -10,9 +11,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\WorkOS\Http\Middleware\ValidateSessionWithWorkOS;
 
-Route::get('/', function () {
-    return Inertia::render('welcome');
-})->name('home');
+    Route::get('/', [HomeController::class, 'index']);
 
 Route::middleware([
     'auth',
