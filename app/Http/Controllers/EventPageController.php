@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Events;
-use App\Models\Merchandise;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class HomeController extends Controller
+class EventPageController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-     public function index(Request $request)
+    public function index(Request $request)
     {
         $perPage = $request->input('perPage', 5);
         $search = $request->input('search');
@@ -20,42 +19,6 @@ class HomeController extends Controller
 
         $status = $request->input('status');
         $queryEvents = Events::paginate($perPage, ['*'], 'page', $page);
-
-        $query = Merchandise::paginate($perPage, ['*'], 'page', $page);
-
-        if ($search) {
-               $query->where(function($q) use ($search) {
-                   $searchLower = strtolower($search);
-                   $q->whereRaw('LOWER(name) LIKE ?', ["%{$searchLower}%"])
-                     ->orWhereRaw('LOWER(deskripsi) LIKE ?', ["%{$searchLower}%"]);
-               });
-           }
-   
-           // FIX: Multiple status filter
-           if ($status) {
-               if (is_array($status)) {
-                   $query->whereIn('status', $status);
-               } else if (is_string($status)) {
-                   $statusArray = explode(',', $status);
-                   $query->whereIn('status', $statusArray);
-               }
-           }
-   
-   
-          $merchandise = $query;
-
-
-
-
-
-
-
-       $merchandise->through(function($item) {
-               return [
-                   ...$item->toArray(),
-                   'image' => $item->image ? url($item->image) : null
-               ];
-           });
 
 
      if ($search) {
@@ -85,9 +48,9 @@ class HomeController extends Controller
                 'cover_image' => $item->cover_image ? url($item->cover_image) : null
             ];
         });
-        return Inertia::render('welcome', [
+        return Inertia::render('events', [
             'events' => $events->items() ?? [],
-            'merchandise' => $merchandise->items() ?? [],
+   
          'filters' => [
                 'search' => $search ?? '',
               
@@ -109,6 +72,7 @@ class HomeController extends Controller
             ]
         ]);
     }
+
 
     /**
      * Show the form for creating a new resource.

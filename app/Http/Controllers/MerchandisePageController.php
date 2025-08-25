@@ -2,24 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Events;
 use App\Models\Merchandise;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class HomeController extends Controller
+class MerchandisePageController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-     public function index(Request $request)
+    public function index(Request $request)
     {
         $perPage = $request->input('perPage', 5);
         $search = $request->input('search');
            $page = $request->input('page', 1);
 
         $status = $request->input('status');
-        $queryEvents = Events::paginate($perPage, ['*'], 'page', $page);
+  
 
         $query = Merchandise::paginate($perPage, ['*'], 'page', $page);
 
@@ -58,36 +57,13 @@ class HomeController extends Controller
            });
 
 
-     if ($search) {
-            $queryEvents->where(function($q) use ($search) {
-                $searchLower = strtolower($search);
-                $q->whereRaw('LOWER(title) LIKE ?', ["%{$searchLower}%"])
-                  ->orWhereRaw('LOWER(location) LIKE ?', ["%{$searchLower}%"]);
-            });
-        }
-
-        // FIX: Multiple status filter
-        if ($status) {
-            if (is_array($status)) {
-                $queryEvents->whereIn('status', $status);
-            } else if (is_string($status)) {
-                $statusArray = explode(',', $status);
-                $queryEvents->whereIn('status', $statusArray);
-            }
-        }
+ 
 
 
-       $events = $queryEvents;
-
-       $events->through(function($item) {
-            return [
-                ...$item->toArray(),
-                'cover_image' => $item->cover_image ? url($item->cover_image) : null
-            ];
-        });
-        return Inertia::render('welcome', [
-            'events' => $events->items() ?? [],
-            'merchandise' => $merchandise->items() ?? [],
+    
+        return Inertia::render('merchandise', [
+           
+            'Merch' => $merchandise->items() ?? [],
          'filters' => [
                 'search' => $search ?? '',
               
@@ -95,11 +71,11 @@ class HomeController extends Controller
                 
             ],
             'pagination' => [
-                'data' => $events->toArray(),
-                'total' => $events->total(),
-                'currentPage' => $events->currentPage(),
-                'perPage' => $events->perPage(),
-                'lastPage' => $events->lastPage(),
+                'data' => $merchandise->toArray(),
+                'total' => $merchandise->total(),
+                'currentPage' => $merchandise->currentPage(),
+                'perPage' => $merchandise->perPage(),
+                'lastPage' => $merchandise->lastPage(),
          
      
             ],

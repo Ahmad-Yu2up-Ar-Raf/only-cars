@@ -15,7 +15,7 @@ function SectionWrapper({ className , children, showBottom = false,  showTop = t
     <section className={cn("relative mx-auto w-full   h-full  border-neutral-100 px-4 sm:px-6 md:px-8 dark:border-neutral-900", )}>
 {showTop && (
 
-<div className="absolute top-0 left-0  -z-0 h-px w-full bg-neutral-100 sm:top-6 md:top-0 dark:bg-neutral-800" />
+<div className="absolute top-0 left-0  -z-0 h-px w-full bg-neutral-100 sm:top-6 md:top-0 dark:bg-neutral-700" />
 )
 
 }

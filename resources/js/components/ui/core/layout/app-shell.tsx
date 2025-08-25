@@ -3,7 +3,7 @@ import { SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
 
 import Footer4Col from './site-footer';
-
+import { FloatingNav } from './site-header';
 
 
 interface AppShellProps {
@@ -16,7 +16,7 @@ export function AppShell({ children, variant = 'header' }: AppShellProps) {
 
     if (variant === 'header') {
         return <div className="flex min-h-dvh w-full content-center flex-col">
-         
+         <FloatingNav />
             <main className='m-auto w-full min-h-dvh'>
 
             {children}

@@ -2,6 +2,7 @@
 import SectionWrapper from '../provider/SectionWrapper'
 
 import { TextAnimate } from '../../fragments/animations/Text-Animate'
+import Noise from '../../fragments/Noise'
 function Hero() {
 
   return (
@@ -48,7 +49,13 @@ FOR THE ELITE
     </TextAnimate>
 
             </div>
-
+ <Noise
+    patternSize={250}
+    patternScaleX={1}
+    patternScaleY={1}
+    patternRefreshInterval={2}
+    patternAlpha={15}
+  />
         </SectionWrapper>
   )
 }

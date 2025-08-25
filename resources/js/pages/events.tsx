@@ -1,9 +1,6 @@
-import About from '@/components/ui/core/section/About';
-import Events from '@/components/ui/core/section/Events';
-import Gallery from '@/components/ui/core/section/Gallery';
-import Hero from '@/components/ui/core/section/Hero';
-import Merchandise from '@/components/ui/core/section/merchandise';
-import { Gallery4 } from '@/components/ui/fragments/ProductCard';
+
+import SectionWrapper from '@/components/ui/core/provider/SectionWrapper';
+import Experience7 from '@/components/ui/core/section/EventBlog';
 import { EventsSchema, MerchSchema } from '@/lib/validations/validations';
 import { Filters, PaginatedData, type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
@@ -11,7 +8,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 
 type PageProps = {
     pagination: PaginatedData;
-    merchandise: MerchSchema[]
+
     events: EventsSchema[]
     filters: Filters,
       flash?: {
@@ -21,21 +18,19 @@ type PageProps = {
 }
 
 
-export default function Welcome({  events , merchandise}: PageProps) {
+export default function Events({  events }: PageProps) {
    
 
     return (
         <>
-            <Head title="Welcome">
+            <Head title="Events">
                 <link rel="preconnect" href="https://fonts.bunny.net" />
                 <link href="https://fonts.bunny.net/css?family=montserrat:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
             </Head>
-      <Hero/>
-      <About/>
-      <Events Events={events}/>
-      {/* <Merchandise/> */}
-      <Gallery4  items={merchandise}/>
-      {/* <Gallery/> */}
+            <SectionWrapper className=' py-20'>
+
+   <Experience7 experienceData={events}/>
+            </SectionWrapper>
         </>
     );
 }

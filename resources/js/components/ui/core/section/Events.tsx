@@ -163,27 +163,28 @@ export default function Experience3({ Events } : componentProps) {
           </VerticalCutReveal>
         </h1>
         <div className="sm:w-96 space-y-1.5 sm:pt-0 pt-4">
-          <p className="text-sm font-semibold text-end">
-            Lorem ipsum dolor sit consectetur
-          </p>
-          <VerticalCutReveal
-            splitBy="words"
-            staggerDuration={0.1}
-            staggerFrom="first"
-            reverse={true}
-            wordLevelClassName="text-xs lg:text-base text-justify"
-            transition={{
-              type: "spring",
-              stiffness: 250,
-              damping: 30,
-              delay: 0,
-            }}
-          >
-            Lorem ipsum, dolor sit amet consectetur adipisicing elit. Placeat
-            aperiam dolorem voluptates mollitia necessitatibus voluptatibus
-            porro alias repellendus quasi maiores!
-          </VerticalCutReveal>
-        </div>
+  <p className="text-sm font-semibold text-end">
+    Upcoming & Live Events
+  </p>
+  <VerticalCutReveal
+    splitBy="words"
+    staggerDuration={0.1}
+    staggerFrom="first"
+    reverse={true}
+    wordLevelClassName="text-xs lg:text-base text-justify"
+    transition={{
+      type: "spring",
+      stiffness: 250,
+      damping: 30,
+      delay: 0,
+    }}
+  >
+    Stay updated with our latest events, workshops, and live sessions. 
+    Join us to connect, learn, and experience unforgettable moments 
+    with our community.
+  </VerticalCutReveal>
+</div>
+
       </article>
       <div
         ref={heroRef}

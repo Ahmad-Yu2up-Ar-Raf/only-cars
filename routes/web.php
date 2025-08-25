@@ -1,17 +1,26 @@
 <?php
 
 use App\Http\Controllers\AdmindController;
+use App\Http\Controllers\EventPageController;
 use App\Http\Controllers\EventsController;
+
 use App\Http\Controllers\GalleryController;
+
+use App\Http\Controllers\GalleryPageController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MerchandiseController;
+
+use App\Http\Controllers\MerchandisePageController;
 use App\Http\Controllers\PaketController;
 use App\Http\Controllers\TeamController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
+
 use Laravel\WorkOS\Http\Middleware\ValidateSessionWithWorkOS;
 
     Route::get('/', [HomeController::class, 'index']);
+    Route::get('/events', [EventPageController::class, 'index']);
+    Route::get('/merchandise', [MerchandisePageController::class, 'index']);
+    Route::get('/gallery', [GalleryPageController::class, 'index']);
 
 Route::middleware([
     'auth',
