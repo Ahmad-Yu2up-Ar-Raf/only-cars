@@ -49,9 +49,7 @@ createInertiaApp({
             </>
         );
     },
-    progress: {
-        color: 'var(--accent-foreground)',
-    },
+   
 });
 
 initializeTheme();

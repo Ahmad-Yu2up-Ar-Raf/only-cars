@@ -16,7 +16,7 @@ function UnsplashGrid({items }:ComponentProps) {
 
   return (
     <>
-      <SectionWrapper className='container mx-auto p-4 py-20 '>
+      <SectionWrapper className='container mx-auto p-0 py-20 '>
              <article className="max-w-7xl pb-3 px-5 border-b mx-auto sm:flex justify-between items-end">
         <h1 className="xl:text-[10rem] lg:text-8xl md:text-7xl text-6xl text-accent-foreground pt-4 lg:-space-y-10 -space-y-4">
           <VerticalCutReveal
